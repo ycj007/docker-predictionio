@@ -1,5 +1,5 @@
 FROM ubuntu
-MAINTAINER Steven Yan
+MAINTAINER  chongjie.yuan
 
 ENV PIO_VERSION 0.12.1
 ENV SPARK_VERSION 2.1.1
@@ -26,7 +26,8 @@ USER pio
 
 ## Install Predictionio.
 RUN cd ${HOME} \
-    && curl -O http://apache.mirrors.pair.com/incubator/predictionio/${PIO_VERSION}/apache-predictionio-${PIO_VERSION}.tar.gz \
+    #&& curl -O http://apache.mirrors.pair.com/incubator/predictionio/${PIO_VERSION}/apache-predictionio-${PIO_VERSION}.tar.gz \
+    && curl -O http://mirrors.hust.edu.cn/apache/predictionio/${PIO_VERSION}/apache-predictionio-${PIO_VERSION}.tar.gz \
     && mkdir apache-predictionio-${PIO_VERSION} \
     && tar -xvzf apache-predictionio-${PIO_VERSION}.tar.gz -C ./apache-predictionio-${PIO_VERSION} \
     && rm apache-predictionio-${PIO_VERSION}.tar.gz \
