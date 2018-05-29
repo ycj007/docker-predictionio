@@ -1,6 +1,9 @@
 FROM ubuntu
 MAINTAINER chongjie.yuan
 
+LABEL version="0.12.1"
+LABEL description=" pio with HBASE elasticsearch ."
+
 ENV PIO_VERSION 0.12.1
 ENV SPARK_VERSION 2.1.1
 ENV HADOOP_VERSION 2.7
