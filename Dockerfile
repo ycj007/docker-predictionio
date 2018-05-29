@@ -1,8 +1,5 @@
 FROM ubuntu
-MAINTAINER chongjie.yuan
-
-LABEL version="0.12.1"
-LABEL description=" pio with HBASE elasticsearch ."
+MAINTAINER Steven Yan
 
 ENV PIO_VERSION 0.12.1
 ENV SPARK_VERSION 2.1.1
@@ -10,22 +7,10 @@ ENV HADOOP_VERSION 2.7
 ENV ELASTICSEARCH_VERSION 5.5.2
 ENV HBASE_VERSION 1.2.6
 
-ENV PIO_HOME /PredictionIO-${PIO_VERSION}
+ENV PIO_HOME /PredictionIO-${PIO_VERSION}-incubating
 ENV PATH=${PIO_HOME}/bin:$PATH
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV HOME /home/pio
-
-ARG pio-url=https://www.apache.org/dyn/closer.cgi/predictionio/${PIO_VERSION}/apache-predictionio-${PIO_VERSION}.tar.gz
-ARG pio-tar-name=apache-predictionio-${PIO_VERSION}.tar.gz
-ARG pio-dir=apache-predictionio-${PIO_VERSION}
-ARG spark-url=http://d3kbcqa49mib13.cloudfront.net/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
-ARG spark-tar-name=spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
-ARG elastic-url=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz
-ARG elastic-tar-name=elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz
-ARG elastic-dir=elasticsearch-${ELASTICSEARCH_VERSION}
-ARG hbase-url=http://apache.mirrors.hoobly.com/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz
-ARG hbase-tar-name=hbase-${HBASE_VERSION}-bin.tar.gz
-ARG hbase-dir=hbase-${HBASE_VERSION}
 
 RUN apt-get update \
     && apt-get install -y --auto-remove --no-install-recommends curl libgfortran3 python-pip wget openjdk-8-jdk sudo \
@@ -41,24 +26,24 @@ USER pio
 
 ## Install Predictionio.
 RUN cd ${HOME} \
-    && curl -O ${pio-url} \
-    && mkdir ${pio-dir}\
-    && tar -xvzf ${pio-tar-name} -C ./${pio-dir} \
-    && rm ${pio-tar-name}z \
-    && cd ${pio-dir} \
+    && curl -O http://apache.mirrors.pair.com/incubator/predictionio/${PIO_VERSION}/apache-predictionio-${PIO_VERSION}.tar.gz \
+    && mkdir apache-predictionio-${PIO_VERSION} \
+    && tar -xvzf apache-predictionio-${PIO_VERSION}.tar.gz -C ./apache-predictionio-${PIO_VERSION} \
+    && rm apache-predictionio-${PIO_VERSION}.tar.gz \
+    && cd apache-predictionio-${PIO_VERSION} \
     && ./make-distribution.sh
 
-RUN sudo tar zxvf ${HOME}/${pio-dir}/${PIO_HOME} -C / \
-    && rm -r ${HOME}/${pio-dir} \
+RUN sudo tar zxvf ${HOME}/apache-predictionio-${PIO_VERSION}/PredictionIO-${PIO_VERSION}.tar.gz -C / \
+    && rm -r ${HOME}/apache-predictionio-${PIO_VERSION} \
     && mkdir /${PIO_HOME}/vendors
 
 COPY files/pio-env.sh ${PIO_HOME}/conf/pio-env.sh
 
 # Install Spark.
 RUN cd ${HOME} \
-    && wget ${spark-url} \
-    && tar zxvfC ${spark-tar-name} ${PIO_HOME}/vendors \
-    && rm ${spark-tar-name}
+    && wget http://d3kbcqa49mib13.cloudfront.net/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
+    && tar zxvfC spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz ${PIO_HOME}/vendors \
+    && rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
 
 USER root
 
@@ -73,18 +58,18 @@ USER pio
 
 # Install elastic search.
 RUN cd ${HOME} \
-    && wget ${elastic-url} \
-    && tar -xvzf ${elastic-tar-name} -C ${PIO_HOME}/vendors \
-    && rm ${elastic-tar-name} \
-    && echo 'cluster.name: predictionio' >> ${PIO_HOME}/vendors/${elastic-dir}/config/elasticsearch.yml \
-    && echo 'network.host: _local_' >> ${PIO_HOME}/vendors/${elastic-dir}/config/elasticsearch.yml
+    && wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz \
+    && tar -xvzf elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz -C ${PIO_HOME}/vendors \
+    && rm elasticsearch-${ELASTICSEARCH_VERSION}.tar.gz \
+    && echo 'cluster.name: predictionio' >> ${PIO_HOME}/vendors/elasticsearch-${ELASTICSEARCH_VERSION}/config/elasticsearch.yml \
+    && echo 'network.host: _local_' >> ${PIO_HOME}/vendors/elasticsearch-${ELASTICSEARCH_VERSION}/config/elasticsearch.yml
 
 # Install Hbase
 RUN cd ${HOME} \
-    && curl -O ${hbase-url} \
-    && tar -xvzf ${hbase-tar-name} -C ${PIO_HOME}/vendors \
-    && rm ${hbase-tar-name}
-COPY files/hbase-site.xml ${PIO_HOME}/vendors/${hbase-dir}/conf/hbase-site.xml
+    && curl -O http://apache.mirrors.hoobly.com/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-bin.tar.gz \
+    && tar -xvzf hbase-${HBASE_VERSION}-bin.tar.gz -C ${PIO_HOME}/vendors \
+    && rm hbase-${HBASE_VERSION}-bin.tar.gz
+COPY files/hbase-site.xml ${PIO_HOME}/vendors/hbase-${HBASE_VERSION}/conf/hbase-site.xml
 
-RUN sed -i "s|VAR_PIO_HOME|${PIO_HOME}|" ${PIO_HOME}/vendors/${hbase-dir}/conf/hbase-site.xml \
-    && sed -i "s|VAR_HBASE_VERSION|${HBASE_VERSION}|" ${PIO_HOME}/vendors/${hbase-dir}/conf/hbase-site.xml
+RUN sed -i "s|VAR_PIO_HOME|${PIO_HOME}|" ${PIO_HOME}/vendors/hbase-${HBASE_VERSION}/conf/hbase-site.xml \
+    && sed -i "s|VAR_HBASE_VERSION|${HBASE_VERSION}|" ${PIO_HOME}/vendors/hbase-${HBASE_VERSION}/conf/hbase-site.xml
