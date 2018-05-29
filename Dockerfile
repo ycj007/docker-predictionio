@@ -1,11 +1,18 @@
 FROM ubuntu
 MAINTAINER  chongjie.yuan
 
-ENV PIO_VERSION 0.12.1
-ENV SPARK_VERSION 2.1.1
-ENV HADOOP_VERSION 2.7
-ENV ELASTICSEARCH_VERSION 5.5.2
-ENV HBASE_VERSION 1.2.6
+ARG pio_version=0.12.1
+ARG spark_version=2.1.1
+ARG hadoop_version=2.7
+ARG elastisearch_version=5.5.2
+ARG hbase_version=1.2.6
+
+
+ENV PIO_VERSION ${pio_version}
+ENV SPARK_VERSION ${spark_version}
+ENV HADOOP_VERSION ${hadoop_version}
+ENV ELASTICSEARCH_VERSION ${elastisearch_version}
+ENV HBASE_VERSION ${hbase_version}
 
 ENV PIO_HOME /PredictionIO-${PIO_VERSION}-incubating
 ENV PATH=${PIO_HOME}/bin:$PATH
@@ -74,3 +81,5 @@ COPY files/hbase-site.xml ${PIO_HOME}/vendors/hbase-${HBASE_VERSION}/conf/hbase-
 
 RUN sed -i "s|VAR_PIO_HOME|${PIO_HOME}|" ${PIO_HOME}/vendors/hbase-${HBASE_VERSION}/conf/hbase-site.xml \
     && sed -i "s|VAR_HBASE_VERSION|${HBASE_VERSION}|" ${PIO_HOME}/vendors/hbase-${HBASE_VERSION}/conf/hbase-site.xml
+
+CMD ["/bin/bash","pio-start-all"]
